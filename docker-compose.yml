@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  vectorlead:
+    build: .
+    container_name: vectorlead-engine
+    volumes:
+      - ./crm_data:/app/crm_data
+      - ./vectorlead.db:/app/vectorlead.db
+      - ./service_account.json:/app/service_account.json:ro
+    environment:
+      - GOOGLE_SERVICE_ACCOUNT_PATH=/app/service_account.json
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID:-}
+      - VECTORLEAD_DEFAULT_NICHE=personal_trainer
+      - VECTORLEAD_MIN_NEW_LEADS=10
+    command: ["hunt", "--niche", "personal_trainer", "--min-new-leads", "10"]

@@ -1,0 +1,52 @@
+name: "🎯 Niche Rule Proposal"
+description: "Propose a new niche rule configuration or keyword list for config/niches.yaml."
+labels: ["niche-rule", "community"]
+body:
+  - type: input
+    id: niche-id
+    attributes:
+      label: "Niche ID"
+      description: "Identifier for the niche in snake_case (e.g., executive_coach, crypto_advisor)."
+      placeholder: "chiropractor"
+    validations:
+      required: true
+  - type: input
+    id: niche-name
+    attributes:
+      label: "Display Name"
+      placeholder: "Chiropractors & Physical Clinics"
+    validations:
+      required: true
+  - type: textarea
+    id: positive-keywords
+    attributes:
+      label: "Positive Keywords"
+      description: "List of domain positive terms that identify active practitioners."
+      placeholder: |
+        - chiropractor
+        - chiropractic care
+        - spinal decompression
+    validations:
+      required: true
+  - type: textarea
+    id: service-indicators
+    attributes:
+      label: "Service Indicators"
+      description: "Signals showing active appointment booking, consults, or treatment."
+      placeholder: |
+        - book an appointment
+        - new patient special
+        - schedule visit
+    validations:
+      required: true
+  - type: textarea
+    id: negative-keywords
+    attributes:
+      label: "Negative Keywords & Exclusions"
+      description: "Keywords to immediately disqualify equipment stores, apparel, or wholesalers."
+      placeholder: |
+        - chiropractic table supply
+        - wholesale equipment
+        - medical furniture
+    validations:
+      required: true

@@ -1,0 +1,27 @@
+name: "💡 Feature Request"
+description: "Suggest an idea or enhancement for VectorLead."
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for a new mathematical heuristic, scraper capability, or CRM integration? Tell us below!
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Problem or Limitation"
+      description: "Is your feature request related to a specific problem or bottleneck? Please describe."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Proposed Solution"
+      description: "A clear description of what you want to happen and how it should work."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternative Solutions Considered"
+      description: "Describe any alternative solutions or workarounds you've considered."
