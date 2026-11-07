@@ -1,4 +1,4 @@
-name: InstaPulse CI
+name: VectorLead CI
 
 on:
   push:
