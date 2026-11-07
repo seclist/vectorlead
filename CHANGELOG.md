@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Follower Churn Filter ($F_{\text{ratio}}$):** Direct disqualification of mass-follow/unfollow churn bots.
 - **Half-Life Exponential Recency Decay:** Post consistency weighting with $\lambda = 7$ day half-life replacing flat 30-day post counts.
 - **Velocity Acceleration ($\Delta R_v$):** Second derivative detection of viral breakout creators with automatic $+10\%$ momentum boost and `Breakout 🚀` badge.
-- **Official Visual Branding Assets:** Added VectorLead logo and GitHub repository banner generated in Canva (`assets/`).
+- **Official Visual Branding Assets:** Added clean, developer-grade geometric vector logo and GitHub repository banner (`assets/`).
 - **Comprehensive GitHub Community Templates:** Issue forms (`bug_report`, `feature_request`, `niche_proposal`), PR template, and security guidelines.
 
 ### Changed

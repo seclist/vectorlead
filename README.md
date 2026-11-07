@@ -16,7 +16,7 @@
 
 **Algorithmic B2B outreach without hallucination, account bans, or $100/mo API bills.**
 
-[Features](#-key-features) • [Architecture](#-architecture) • [Mathematical Momentum Formula](#-mathematical-momentum-engine-ahs) • [Quickstart](#-3-step-quickstart) • [Google Sheets Setup](#-google-sheets-crm-setup) • [CLI Reference](#-cli-reference) • [Design Assets](#-canva-design-assets)
+[Why VectorLead?](#-why-vectorlead) • [Comparison](#-traditional-scrapers-vs-vectorlead) • [Architecture](#-architecture) • [Momentum Engine](#-mathematical-momentum-engine-ahs) • [Quickstart](#-3-step-quickstart) • [Google Sheets Setup](#-google-sheets-crm-setup) • [CLI Reference](#-cli-reference) • [Niche Engine](#-modular-niche-configuration-confignichesyaml)
 
 ---
 
@@ -34,6 +34,18 @@ Traditional Instagram lead generation tools rely on brittle scraper architecture
 4. **Funnel Maturity Index (FMI):** Inspects bio link destinations (Calendly, Typeform, Skool, Kajabi, Stan Store) and detects ManyChat DM keyword automations.
 5. **Follower-to-Following Churn Filter ($F_{\text{ratio}}$):** Instantly rejects mass follow/unfollow churn bots.
 6. **Non-Destructive Google Sheets CRM:** Guarantees $O(1)$ deduplication across `Tracker` and `Disposed` tabs with dynamic first-empty-row appending.
+
+### ⚔️ Traditional Scrapers vs. VectorLead
+
+| Capability | Traditional Scrapers & Lead Databases | VectorLead Engine |
+|:---|:---|:---|
+| **Account Ban Risk** | 🔴 High (Burner accounts, session cookies required) | 🟢 **Zero (Lightweight crawler, 0% ban rate)** |
+| **API / Proxy Cost** | 🔴 \$150–\$500 / month for residential proxies | 🟢 **\$0 Free & Open-Source** |
+| **Account Freshness** | 🔴 Scrapes dead profiles or 1M+ inactive influencers | 🟢 **35-day rolling momentum scoring (AHS $\ge 60$)** |
+| **Engagement Validity** | 🔴 Fooled by bot pods & purchased fake likes | 🟢 **EQS ratio analysis & creator reply velocity** |
+| **Sales Readiness** | 🔴 Raw follower count only | 🟢 **Funnel Maturity Index (Calendly, Skool, Kajabi, ManyChat)** |
+| **CRM Protection** | 🔴 Overwrites rows or creates duplicate entries | 🟢 **$O(1)$ dual-tab deduplication + non-destructive append** |
+| **Zero-Setup Mode** | 🔴 Complex credential/cookie login flow | 🟢 **Offline local CSV CRM mirror out of the box** |
 
 ---
 
@@ -147,17 +159,6 @@ cp .env.example .env
 ```bash
 python main.py hunt --niche personal_trainer --min-new-leads 10
 ```
-
----
-
-## 🎨 Canva Design Assets
-
-The official VectorLead visual assets for GitHub headers and avatars were created in Canva and are exported directly inside `assets/`:
-
-| Asset | Preview | Editable Canva Link |
-|---|:---:|---|
-| **Logo** | <img src="assets/logo.png" width="80" /> | [Open Logo in Canva](https://canva.link/ugufzjndx730b6j) |
-| **Repository Banner** | <img src="assets/banner.png" width="220" /> | [Open Banner in Canva](https://canva.link/id8hpsyvksy2ivc) |
 
 ---
 
@@ -294,6 +295,28 @@ pytest -v
 # Run with coverage report
 pytest --cov=src --cov-report=term-missing tests/
 ```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Whether you are proposing a new niche template in `config/niches.yaml`, optimizing the crawler rate limiter, or enhancing the mathematical scoring models:
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingNiche`)
+3. Commit your Changes (`git commit -m 'feat: add e-learning course creator niche'`)
+4. Push to the Branch (`git push origin feature/AmazingNiche`)
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for full guidelines.
+
+---
+
+## ⭐ Stargazers & Community
+
+If VectorLead saves you hours of manual outreach or eliminates SaaS subscription fees, give it a star! It helps the project reach more engineers and agency builders.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=seclist/vectorlead&type=Date)](https://star-history.com/#seclist/vectorlead&Date)
 
 ---
 
