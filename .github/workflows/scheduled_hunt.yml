@@ -1,0 +1,83 @@
+name: Scheduled Lead Hunt
+
+on:
+  schedule:
+    # Runs daily at 09:00 UTC (Runs for free on GitHub Actions)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      niche:
+        description: 'Target niche keyword profile'
+        required: true
+        default: 'personal_trainer'
+        type: choice
+        options:
+          - personal_trainer
+          - realtor
+          - ecommerce
+          - saas_consultant
+      min_leads:
+        description: 'Target batch quota (minimum new qualified leads)'
+        required: true
+        default: '10'
+        type: string
+      max_followers:
+        description: 'Maximum follower ceiling'
+        required: true
+        default: '100000'
+        type: string
+
+jobs:
+  hunt:
+    name: Autonomous Lead Discovery & CRM Sync
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Configure Credentials & Environment
+        env:
+          GCP_SA_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: |
+          if [ -n "$GCP_SA_JSON" ] && [ -n "$SHEET_ID" ]; then
+            echo "Configuring Google Sheets CRM integration..."
+            echo "$GCP_SA_JSON" > service_account.json
+            echo "GOOGLE_SERVICE_ACCOUNT_PATH=service_account.json" >> .env
+            echo "GOOGLE_SHEET_ID=$SHEET_ID" >> .env
+          else
+            echo "No Google Cloud credentials detected. Operating in Local Offline CSV CRM mode."
+          fi
+
+      - name: Execute VectorLead Autonomous Hunt
+        run: |
+          NICHE="${{ inputs.niche || 'personal_trainer' }}"
+          MIN_LEADS="${{ inputs.min_leads || '10' }}"
+          MAX_FOLLOWERS="${{ inputs.max_followers || '100000' }}"
+          
+          echo "Starting hunt for niche: $NICHE (quota: $MIN_LEADS leads, max followers: $MAX_FOLLOWERS)"
+          python main.py hunt --niche "$NICHE" --min-new-leads "$MIN_LEADS" --max-followers "$MAX_FOLLOWERS"
+
+      - name: Archive Local CRM Leads (Artifact Download)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vectorlead-crm-output-${{ github.run_id }}
+          path: |
+            crm_data/
+            vectorlead.db
+          retention-days: 30

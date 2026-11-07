@@ -16,7 +16,7 @@
 
 **Algorithmic B2B outreach without hallucination, account bans, or $100/mo API bills.**
 
-[Why VectorLead?](#-why-vectorlead) • [Comparison](#-traditional-scrapers-vs-vectorlead) • [Architecture](#-architecture) • [Momentum Engine](#-mathematical-momentum-engine-ahs) • [Quickstart](#-3-step-quickstart) • [Google Sheets Setup](#-google-sheets-crm-setup) • [CLI Reference](#-cli-reference) • [Niche Engine](#-modular-niche-configuration-confignichesyaml)
+[Why VectorLead?](#-why-vectorlead) • [Comparison](#-traditional-scrapers-vs-vectorlead) • [Architecture](#-architecture) • [Momentum Engine](#-mathematical-momentum-engine-ahs) • [Quickstart](#-3-step-quickstart) • [Cloud Runner](#️-100-free-cloud-runner-github-actions-cron) • [Google Sheets Setup](#-google-sheets-crm-setup) • [CLI Reference](#-cli-reference) • [Niche Engine](#-modular-niche-configuration-confignichesyaml)
 
 ---
 
@@ -207,6 +207,22 @@ VectorLead automatically provisions the required tabs if they do not exist:
 | **C: Reason** | Exact disqualification rationale | `"Followers exceed cap (100,000)"` |
 | **D: Disposed Date** | UTC timestamp | `2026-11-07 15:49:51` |
 | **E: Notes** | Direct profile link | `https://www.instagram.com/<username>/` |
+
+---
+
+## ☁️ 100% Free Cloud Runner (GitHub Actions Cron)
+
+You don't even need to leave your laptop running. You can run VectorLead on a **set-and-forget daily schedule** in the cloud using GitHub Actions for **$0/month**:
+
+### 1-Minute Cloud Setup:
+1. **Fork this repository** to your GitHub account.
+2. Go to **Settings > Secrets and variables > Actions** in your fork:
+   - *(Optional)* `GOOGLE_SERVICE_ACCOUNT_JSON`: Paste your entire `service_account.json` file contents.
+   - *(Optional)* `GOOGLE_SHEET_ID`: Paste your Google Spreadsheet ID.
+   *(If secrets are omitted, VectorLead automatically operates in Offline Local Mode and attaches the generated `Tracker.csv` directly as a downloadable GitHub Action Artifact!)*
+3. Go to the **Actions** tab, select **Scheduled Lead Hunt**, and click **Run workflow**.
+
+By default, VectorLead runs every morning at **09:00 UTC** to find 10 fresh qualified leads and sync them straight into your pipeline.
 
 ---
 
