@@ -1,7 +1,6 @@
 """Unit tests for the live crawler and profile extraction engine."""
 
-import pytest
-from src.scraper import InstagramCrawler, InstagramProfile
+from src.scraper import InstagramCrawler
 
 
 class TestCrawlerHelpers:
@@ -10,7 +9,9 @@ class TestCrawlerHelpers:
     def test_clean_handle(self) -> None:
         assert InstagramCrawler.clean_handle("@coach_mike") == "coach_mike"
         assert InstagramCrawler.clean_handle("coach_mike") == "coach_mike"
-        assert InstagramCrawler.clean_handle("https://www.instagram.com/coach_mike/") == "coach_mike"
+        assert (
+            InstagramCrawler.clean_handle("https://www.instagram.com/coach_mike/") == "coach_mike"
+        )
         assert InstagramCrawler.clean_handle("  @Coach_Mike  ") == "coach_mike"
 
     def test_parse_count_string(self) -> None:
@@ -78,8 +79,8 @@ class TestFunnelClassification:
     """Test Funnel Maturity Index (FMI) domain and DM automation detection."""
 
     def test_high_ticket_calendly(self) -> None:
-        from src.scraper import classify_funnel_tier
         from src.algorithm import FunnelTier
+        from src.scraper import classify_funnel_tier
 
         tier, has_dm = classify_funnel_tier(
             bio="Online Coach | Book a call",
@@ -88,8 +89,8 @@ class TestFunnelClassification:
         assert tier == FunnelTier.TIER_A_HIGH_TICKET
 
     def test_dm_automation_trigger(self) -> None:
-        from src.scraper import classify_funnel_tier
         from src.algorithm import FunnelTier
+        from src.scraper import classify_funnel_tier
 
         tier, has_dm = classify_funnel_tier(
             bio="Want my fat loss roadmap? Comment 'READY' below and I'll DM you",
@@ -99,8 +100,8 @@ class TestFunnelClassification:
         assert has_dm is True
 
     def test_multilink_tree(self) -> None:
-        from src.scraper import classify_funnel_tier
         from src.algorithm import FunnelTier
+        from src.scraper import classify_funnel_tier
 
         tier, has_dm = classify_funnel_tier(
             bio="Fitness tips and recipes",
@@ -109,8 +110,8 @@ class TestFunnelClassification:
         assert tier == FunnelTier.TIER_B_MULTI_LINK
 
     def test_affiliate_amazon(self) -> None:
-        from src.scraper import classify_funnel_tier
         from src.algorithm import FunnelTier
+        from src.scraper import classify_funnel_tier
 
         tier, has_dm = classify_funnel_tier(
             bio="My gym favorites & workout gear. Use code GAINS for 10% off",

@@ -1,6 +1,7 @@
 """Unit tests for the modular NLP and keyword niche classifier."""
 
 import pytest
+
 from src.classifier import NicheClassifier, NicheDefinition
 
 
@@ -29,8 +30,14 @@ class TestPersonalTrainerNiche:
         )
         assert verdict.is_match is True
         assert verdict.confidence >= 0.70
-        assert "fitness coach" in verdict.matched_positives or "online coach" in verdict.matched_positives
-        assert "1-on-1 coaching" in verdict.matched_services or "apply below" in verdict.matched_services
+        assert (
+            "fitness coach" in verdict.matched_positives
+            or "online coach" in verdict.matched_positives
+        )
+        assert (
+            "1-on-1 coaching" in verdict.matched_services
+            or "apply below" in verdict.matched_services
+        )
         assert len(verdict.matched_negatives) == 0
         assert verdict.disqualification_reason is None
 
@@ -48,14 +55,22 @@ class TestPersonalTrainerNiche:
         )
         assert verdict.is_match is False
         assert len(verdict.matched_negatives) > 0
-        assert any(k in verdict.matched_negatives for k in ["gym clothing", "apparel", "activewear", "free shipping", "shop now"])
+        assert any(
+            k in verdict.matched_negatives
+            for k in ["gym clothing", "apparel", "activewear", "free shipping", "shop now"]
+        )
         assert "negative keyword" in verdict.disqualification_reason.lower()
 
     def test_supplement_store_disqualified(self, classifier: NicheClassifier) -> None:
         bio = "The purest whey protein and pre-workout on the market. Supplements store. Shop now!"
-        verdict = classifier.evaluate(bio=bio, full_name="Alpha Nutrition", niche_id="personal_trainer")
+        verdict = classifier.evaluate(
+            bio=bio, full_name="Alpha Nutrition", niche_id="personal_trainer"
+        )
         assert verdict.is_match is False
-        assert "supplements store" in verdict.matched_negatives or "shop now" in verdict.matched_negatives
+        assert (
+            "supplements store" in verdict.matched_negatives
+            or "shop now" in verdict.matched_negatives
+        )
 
     def test_passive_fitness_enthusiast_disqualified(self, classifier: NicheClassifier) -> None:
         # Has positive keywords (fitness coach, personal trainer) but no high-ticket service indicator
@@ -97,7 +112,10 @@ class TestModularNiches:
             niche_id="realtor",
         )
         assert verdict.is_match is True
-        assert "realtor" in verdict.matched_positives or "luxury real estate" in verdict.matched_positives
+        assert (
+            "realtor" in verdict.matched_positives
+            or "luxury real estate" in verdict.matched_positives
+        )
 
     def test_realtor_disqualifies_hardware_store(self, classifier: NicheClassifier) -> None:
         bio = "Austin construction materials and hardware store. Free shipping on bulk orders."

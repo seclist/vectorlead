@@ -1,9 +1,9 @@
 """Unit tests for Account Health Score (AHS) mathematical engine."""
 
 import pytest
+
 from src.algorithm import (
     AccountMetrics,
-    AHSResult,
     calculate_ahs,
     calculate_dynamic_multiplier,
     clamp,

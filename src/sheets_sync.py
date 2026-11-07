@@ -14,9 +14,9 @@ import csv
 import logging
 import os
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class BaseCRM(ABC):
 class LocalSheetsSync(BaseCRM):
     """File-backed local CRM mirror (CSV) with identical deduplication and non-destructive rules."""
 
-    def __init__(self, data_dir: Optional[Path | str] = None) -> None:
+    def __init__(self, data_dir: Path | str | None = None) -> None:
         self.data_dir = Path(data_dir or "crm_data")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.tracker_file = self.data_dir / "Tracker.csv"
@@ -103,12 +103,12 @@ class LocalSheetsSync(BaseCRM):
 
         for file_path in [self.tracker_file, self.disposed_file]:
             if file_path.exists():
-                with open(file_path, "r", newline="", encoding="utf-8") as f:
+                with open(file_path, newline="", encoding="utf-8") as f:
                     reader = csv.reader(f)
                     try:
-                        header = next(reader, None)
+                        next(reader, None)
                     except StopIteration:
-                        header = None
+                        pass
 
                     for row in reader:
                         if row and row[0]:
@@ -136,7 +136,7 @@ class LocalSheetsSync(BaseCRM):
         row_data = [clean_user, f"{ahs:.1f}", "", "new lead", "", link]
 
         # Calculate next empty row index (1-based index)
-        with open(self.tracker_file, "r", newline="", encoding="utf-8") as f:
+        with open(self.tracker_file, newline="", encoding="utf-8") as f:
             total_rows = sum(1 for _ in f)
         target_row_idx = total_rows + 1
 
@@ -152,11 +152,11 @@ class LocalSheetsSync(BaseCRM):
         """Append to Disposed tab without overwriting."""
         clean_user = self.clean_handle(username)
         link = f"https://www.instagram.com/{clean_user}/"
-        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        date_str = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
         followers_str = f"{followers:,}" if isinstance(followers, int) else str(followers)
         row_data = [clean_user, followers_str, reason, date_str, link]
 
-        with open(self.disposed_file, "r", newline="", encoding="utf-8") as f:
+        with open(self.disposed_file, newline="", encoding="utf-8") as f:
             total_rows = sum(1 for _ in f)
         target_row_idx = total_rows + 1
 
@@ -165,16 +165,18 @@ class LocalSheetsSync(BaseCRM):
             writer.writerow(row_data)
 
         self.existing_usernames.add(clean_user)
-        logger.info("Appended @%s to Disposed at row %d (Reason: %s)", clean_user, target_row_idx, reason)
+        logger.info(
+            "Appended @%s to Disposed at row %d (Reason: %s)", clean_user, target_row_idx, reason
+        )
         return target_row_idx
 
     def get_tracker_count(self) -> int:
-        with open(self.tracker_file, "r", newline="", encoding="utf-8") as f:
+        with open(self.tracker_file, newline="", encoding="utf-8") as f:
             count = sum(1 for _ in f)
         return max(0, count - 1)
 
     def get_disposed_count(self) -> int:
-        with open(self.disposed_file, "r", newline="", encoding="utf-8") as f:
+        with open(self.disposed_file, newline="", encoding="utf-8") as f:
             count = sum(1 for _ in f)
         return max(0, count - 1)
 
@@ -184,9 +186,9 @@ class GoogleSheetsCRM(BaseCRM):
 
     def __init__(
         self,
-        service_account_path: Optional[str] = None,
-        sheet_id: Optional[str] = None,
-        sheet_name: Optional[str] = None,
+        service_account_path: str | None = None,
+        sheet_id: str | None = None,
+        sheet_name: str | None = None,
     ) -> None:
         import gspread
         from google.oauth2.service_account import Credentials
@@ -286,7 +288,7 @@ class GoogleSheetsCRM(BaseCRM):
         """Append to Disposed tab at next available row."""
         clean_user = self.clean_handle(username)
         link = f"https://www.instagram.com/{clean_user}/"
-        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        date_str = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
         followers_str = f"{followers:,}" if isinstance(followers, int) else str(followers)
         row_data = [clean_user, followers_str, reason, date_str, link]
 
@@ -307,18 +309,16 @@ class GoogleSheetsCRM(BaseCRM):
 
 def get_crm_backend(
     force_local: bool = False,
-    local_dir: Optional[Path | str] = None,
-    service_account_path: Optional[str] = None,
-    sheet_id: Optional[str] = None,
+    local_dir: Path | str | None = None,
+    service_account_path: str | None = None,
+    sheet_id: str | None = None,
 ) -> BaseCRM:
     """Factory creating GoogleSheetsCRM if credentials exist, falling back to LocalSheetsSync."""
     if force_local:
         return LocalSheetsSync(data_dir=local_dir)
 
     creds_path = (
-        service_account_path
-        or os.getenv("GOOGLE_SERVICE_ACCOUNT_PATH")
-        or "service_account.json"
+        service_account_path or os.getenv("GOOGLE_SERVICE_ACCOUNT_PATH") or "service_account.json"
     )
 
     if Path(creds_path).exists():

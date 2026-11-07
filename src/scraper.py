@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
@@ -20,7 +20,7 @@ from src.algorithm import AccountMetrics, FunnelTier
 logger = logging.getLogger(__name__)
 
 
-def classify_funnel_tier(bio: str, external_url: Optional[str] = None) -> tuple[FunnelTier, bool]:
+def classify_funnel_tier(bio: str, external_url: str | None = None) -> tuple[FunnelTier, bool]:
     """Classify funnel maturity based on external URL domain and caption/bio DM automation triggers."""
     bio_lower = (bio or "").lower()
     url_lower = (external_url or "").lower()
@@ -34,8 +34,14 @@ def classify_funnel_tier(bio: str, external_url: Optional[str] = None) -> tuple[
     has_dm_automation = any(re.search(pat, bio_lower) for pat in dm_automation_patterns)
 
     tier_a_domains = [
-        "calendly.com", "typeform.com", "forms.gle", "skool.com",
-        "kajabi.com", "stan.store", "gohighlevel.com", "leadconnectorhq.com"
+        "calendly.com",
+        "typeform.com",
+        "forms.gle",
+        "skool.com",
+        "kajabi.com",
+        "stan.store",
+        "gohighlevel.com",
+        "leadconnectorhq.com",
     ]
     tier_b_domains = ["linktr.ee", "beacons.ai", "bio.fm", "snipfeed.co"]
     tier_c_domains = ["amazon.com", "amzn.to", "shopltk.com", "rewardstyle.com"]
@@ -66,12 +72,12 @@ class InstagramProfile:
     following: int = 0
     posts_count: int = 0
     bio: str = ""
-    external_url: Optional[str] = None
-    profile_pic_url: Optional[str] = None
+    external_url: str | None = None
+    profile_pic_url: str | None = None
     is_verified: bool = False
     is_private: bool = False
     raw_og_description: str = ""
-    metrics: Optional[AccountMetrics] = None
+    metrics: AccountMetrics | None = None
     extra_data: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -87,9 +93,9 @@ class InstagramCrawler:
 
     def __init__(
         self,
-        user_agent: Optional[str] = None,
+        user_agent: str | None = None,
         timeout: int = 10,
-        session: Optional[requests.Session] = None,
+        session: requests.Session | None = None,
     ) -> None:
         self.user_agent = user_agent or self.DEFAULT_USER_AGENT
         self.timeout = timeout
@@ -129,7 +135,7 @@ class InstagramCrawler:
         except (ValueError, TypeError):
             return 0
 
-    def parse_html(self, html: str, username: str) -> Optional[InstagramProfile]:
+    def parse_html(self, html: str, username: str) -> InstagramProfile | None:
         """Parse profile metadata from crawler HTML responses.
 
         Returns None if account does not exist or is deleted/unavailable.
@@ -244,7 +250,7 @@ class InstagramCrawler:
             metrics=metrics,
         )
 
-    def fetch_profile(self, username: str) -> Optional[InstagramProfile]:
+    def fetch_profile(self, username: str) -> InstagramProfile | None:
         """Fetch profile page using crawler headers and parse metadata."""
         clean_user = self.clean_handle(username)
         target_url = f"https://www.instagram.com/{clean_user}/"
@@ -276,7 +282,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
                 "followers": 14200,
                 "posts_count": 280,
                 "bio": "Austin Luxury Real Estate Agent 🏡 Helping buyers & sellers. Book a showing or DM for home valuation 👇",
-                "metrics": AccountMetrics(followers=14200, growth_rate_7d=0.08, reel_view_velocity_ratio=1.4, comment_velocity_ratio=1.2, posts_last_30_days=14, days_since_last_post=1),
+                "metrics": AccountMetrics(
+                    followers=14200,
+                    growth_rate_7d=0.08,
+                    reel_view_velocity_ratio=1.4,
+                    comment_velocity_ratio=1.2,
+                    posts_last_30_days=14,
+                    days_since_last_post=1,
+                ),
             },
             {
                 "username": "austin_building_materials",
@@ -284,7 +297,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
                 "followers": 45000,
                 "posts_count": 520,
                 "bio": "Wholesale building materials and hardware store. Construction equipment. Free shipping on bulk orders.",
-                "metrics": AccountMetrics(followers=45000, growth_rate_7d=0.01, reel_view_velocity_ratio=0.8, comment_velocity_ratio=0.5, posts_last_30_days=4, days_since_last_post=3),
+                "metrics": AccountMetrics(
+                    followers=45000,
+                    growth_rate_7d=0.01,
+                    reel_view_velocity_ratio=0.8,
+                    comment_velocity_ratio=0.5,
+                    posts_last_30_days=4,
+                    days_since_last_post=3,
+                ),
             },
             {
                 "username": "dallas_homes_marcus",
@@ -292,7 +312,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
                 "followers": 28500,
                 "posts_count": 410,
                 "bio": "Dallas Real Estate Broker 🔑 Relocation specialist. Schedule consultation or view listings via link in bio!",
-                "metrics": AccountMetrics(followers=28500, growth_rate_7d=0.05, reel_view_velocity_ratio=1.1, comment_velocity_ratio=1.0, posts_last_30_days=11, days_since_last_post=2),
+                "metrics": AccountMetrics(
+                    followers=28500,
+                    growth_rate_7d=0.05,
+                    reel_view_velocity_ratio=1.1,
+                    comment_velocity_ratio=1.0,
+                    posts_last_30_days=11,
+                    days_since_last_post=2,
+                ),
             },
             {
                 "username": "zillow_celebrity_mansions",
@@ -300,7 +327,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
                 "followers": 850000,
                 "posts_count": 2100,
                 "bio": "Touring $50M mega mansions around the globe. Tag us to be featured.",
-                "metrics": AccountMetrics(followers=850000, growth_rate_7d=0.02, reel_view_velocity_ratio=1.0, comment_velocity_ratio=1.0, posts_last_30_days=30, days_since_last_post=1),
+                "metrics": AccountMetrics(
+                    followers=850000,
+                    growth_rate_7d=0.02,
+                    reel_view_velocity_ratio=1.0,
+                    comment_velocity_ratio=1.0,
+                    posts_last_30_days=30,
+                    days_since_last_post=1,
+                ),
             },
         ]
 
@@ -312,7 +346,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 18500,
             "posts_count": 340,
             "bio": "Online Fitness Coach & Hypertrophy Specialist 🔥 100+ transformations. 1-on-1 coaching application 👇 Apply below!",
-            "metrics": AccountMetrics(followers=18500, growth_rate_7d=0.11, reel_view_velocity_ratio=1.6, comment_velocity_ratio=1.3, posts_last_30_days=16, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=18500,
+                growth_rate_7d=0.11,
+                reel_view_velocity_ratio=1.6,
+                comment_velocity_ratio=1.3,
+                posts_last_30_days=16,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "aesthetic_gymwear_co",
@@ -320,7 +361,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 52000,
             "posts_count": 610,
             "bio": "Premium gym clothing & activewear for bodybuilders. Worldwide shipping 📦 Shop our summer drop now!",
-            "metrics": AccountMetrics(followers=52000, growth_rate_7d=0.03, reel_view_velocity_ratio=0.9, comment_velocity_ratio=0.7, posts_last_30_days=12, days_since_last_post=2),
+            "metrics": AccountMetrics(
+                followers=52000,
+                growth_rate_7d=0.03,
+                reel_view_velocity_ratio=0.9,
+                comment_velocity_ratio=0.7,
+                posts_last_30_days=12,
+                days_since_last_post=2,
+            ),
         },
         {
             "username": "coach_elena_fitness",
@@ -328,7 +376,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 9400,
             "posts_count": 190,
             "bio": "Certified Personal Trainer helping busy women drop 15-30lbs. DM for coaching or apply below 👇",
-            "metrics": AccountMetrics(followers=9400, growth_rate_7d=0.09, reel_view_velocity_ratio=1.3, comment_velocity_ratio=1.1, posts_last_30_days=13, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=9400,
+                growth_rate_7d=0.09,
+                reel_view_velocity_ratio=1.3,
+                comment_velocity_ratio=1.1,
+                posts_last_30_days=13,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "mega_fitness_celeb",
@@ -336,7 +391,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 1450000,
             "posts_count": 3200,
             "bio": "Actor, Author, World Champion. Business inquiries: management@celebfitness.com",
-            "metrics": AccountMetrics(followers=1450000, growth_rate_7d=0.01, reel_view_velocity_ratio=0.8, comment_velocity_ratio=0.6, posts_last_30_days=10, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=1450000,
+                growth_rate_7d=0.01,
+                reel_view_velocity_ratio=0.8,
+                comment_velocity_ratio=0.6,
+                posts_last_30_days=10,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "sam_lifts_daily",
@@ -344,7 +406,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 3200,
             "posts_count": 75,
             "bio": "Fitness coach and gym rat. Sharing my bench and squat PRs. Coffee addict. Seattle 📍",
-            "metrics": AccountMetrics(followers=3200, growth_rate_7d=0.02, reel_view_velocity_ratio=0.7, comment_velocity_ratio=0.4, posts_last_30_days=4, days_since_last_post=3),
+            "metrics": AccountMetrics(
+                followers=3200,
+                growth_rate_7d=0.02,
+                reel_view_velocity_ratio=0.7,
+                comment_velocity_ratio=0.4,
+                posts_last_30_days=4,
+                days_since_last_post=3,
+            ),
         },
         {
             "username": "deleted_dead_account_404",
@@ -361,7 +430,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 24000,
             "posts_count": 480,
             "bio": "Strength & conditioning coach for combat athletes. 1:1 coaching slots open. Apply below 👇",
-            "metrics": AccountMetrics(followers=24000, growth_rate_7d=0.14, reel_view_velocity_ratio=1.7, comment_velocity_ratio=1.4, posts_last_30_days=18, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=24000,
+                growth_rate_7d=0.14,
+                reel_view_velocity_ratio=1.7,
+                comment_velocity_ratio=1.4,
+                posts_last_30_days=18,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "dormant_coach_dan",
@@ -369,7 +445,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 12000,
             "posts_count": 150,
             "bio": "Online coach. Taking a social media break.",
-            "metrics": AccountMetrics(followers=12000, growth_rate_7d=0.001, reel_view_velocity_ratio=0.2, comment_velocity_ratio=0.1, posts_last_30_days=1, days_since_last_post=35),
+            "metrics": AccountMetrics(
+                followers=12000,
+                growth_rate_7d=0.001,
+                reel_view_velocity_ratio=0.2,
+                comment_velocity_ratio=0.1,
+                posts_last_30_days=1,
+                days_since_last_post=35,
+            ),
         },
         {
             "username": "chloe_mobility_coach",
@@ -377,7 +460,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 31500,
             "posts_count": 520,
             "bio": "Mobility Coach | Bulletproof your joints. Link in bio for custom workout programs & 1-on-1 coaching!",
-            "metrics": AccountMetrics(followers=31500, growth_rate_7d=0.12, reel_view_velocity_ratio=1.5, comment_velocity_ratio=1.3, posts_last_30_days=15, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=31500,
+                growth_rate_7d=0.12,
+                reel_view_velocity_ratio=1.5,
+                comment_velocity_ratio=1.3,
+                posts_last_30_days=15,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "supplements_direct_store",
@@ -385,7 +475,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 89000,
             "posts_count": 1100,
             "bio": "Discount supplements store. Free shipping on all orders over $50. Shop now!",
-            "metrics": AccountMetrics(followers=89000, growth_rate_7d=0.01, reel_view_velocity_ratio=0.6, comment_velocity_ratio=0.4, posts_last_30_days=20, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=89000,
+                growth_rate_7d=0.01,
+                reel_view_velocity_ratio=0.6,
+                comment_velocity_ratio=0.4,
+                posts_last_30_days=20,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "jordan_calisthenics_prep",
@@ -393,7 +490,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 16800,
             "posts_count": 270,
             "bio": "Calisthenics coach & body transformation. Master bodyweight mastery. 1-on-1 coaching spots open 👇",
-            "metrics": AccountMetrics(followers=16800, growth_rate_7d=0.10, reel_view_velocity_ratio=1.4, comment_velocity_ratio=1.2, posts_last_30_days=14, days_since_last_post=2),
+            "metrics": AccountMetrics(
+                followers=16800,
+                growth_rate_7d=0.10,
+                reel_view_velocity_ratio=1.4,
+                comment_velocity_ratio=1.2,
+                posts_last_30_days=14,
+                days_since_last_post=2,
+            ),
         },
         {
             "username": "kyle_physique_online",
@@ -401,7 +505,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 22400,
             "posts_count": 390,
             "bio": "Online fitness coach helping dads get shredded. Custom nutrition & training. Apply below 👇",
-            "metrics": AccountMetrics(followers=22400, growth_rate_7d=0.13, reel_view_velocity_ratio=1.5, comment_velocity_ratio=1.3, posts_last_30_days=15, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=22400,
+                growth_rate_7d=0.13,
+                reel_view_velocity_ratio=1.5,
+                comment_velocity_ratio=1.3,
+                posts_last_30_days=15,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "tara_strength_system",
@@ -409,7 +520,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 15100,
             "posts_count": 310,
             "bio": "Powerlifting & strength coach. DM 'ready' to join the team. 1-on-1 coaching link in bio!",
-            "metrics": AccountMetrics(followers=15100, growth_rate_7d=0.09, reel_view_velocity_ratio=1.3, comment_velocity_ratio=1.2, posts_last_30_days=14, days_since_last_post=2),
+            "metrics": AccountMetrics(
+                followers=15100,
+                growth_rate_7d=0.09,
+                reel_view_velocity_ratio=1.3,
+                comment_velocity_ratio=1.2,
+                posts_last_30_days=14,
+                days_since_last_post=2,
+            ),
         },
         {
             "username": "ben_fatloss_blueprint",
@@ -417,7 +535,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 19800,
             "posts_count": 420,
             "bio": "Online personal trainer. Lose fat without cutting carbs. Custom workout & diet. Apply below!",
-            "metrics": AccountMetrics(followers=19800, growth_rate_7d=0.11, reel_view_velocity_ratio=1.6, comment_velocity_ratio=1.4, posts_last_30_days=16, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=19800,
+                growth_rate_7d=0.11,
+                reel_view_velocity_ratio=1.6,
+                comment_velocity_ratio=1.4,
+                posts_last_30_days=16,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "ryan_kettlebell_coach",
@@ -425,7 +550,14 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 11300,
             "posts_count": 230,
             "bio": "Kettlebell coach & functional fitness. 1:1 coaching & custom nutrition. Link in bio to apply!",
-            "metrics": AccountMetrics(followers=11300, growth_rate_7d=0.08, reel_view_velocity_ratio=1.2, comment_velocity_ratio=1.1, posts_last_30_days=12, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=11300,
+                growth_rate_7d=0.08,
+                reel_view_velocity_ratio=1.2,
+                comment_velocity_ratio=1.1,
+                posts_last_30_days=12,
+                days_since_last_post=1,
+            ),
         },
         {
             "username": "zoe_prep_coach",
@@ -433,6 +565,13 @@ def get_curated_seed_prospects(niche: str = "personal_trainer") -> list[dict[str
             "followers": 27900,
             "posts_count": 460,
             "bio": "Physique coach & competition prep. Client results speak for themselves. DM for coaching!",
-            "metrics": AccountMetrics(followers=27900, growth_rate_7d=0.12, reel_view_velocity_ratio=1.5, comment_velocity_ratio=1.3, posts_last_30_days=16, days_since_last_post=1),
+            "metrics": AccountMetrics(
+                followers=27900,
+                growth_rate_7d=0.12,
+                reel_view_velocity_ratio=1.5,
+                comment_velocity_ratio=1.3,
+                posts_last_30_days=16,
+                days_since_last_post=1,
+            ),
         },
     ]

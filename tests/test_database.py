@@ -1,7 +1,9 @@
 """Unit tests for the SQLite local prospect cache and history database."""
 
 from pathlib import Path
+
 import pytest
+
 from src.database import ProspectDatabase
 
 
@@ -64,9 +66,15 @@ class TestProspectDatabase:
         assert stats["synced"] == 3
 
     def test_list_prospects_filtering(self, temp_db: ProspectDatabase) -> None:
-        temp_db.upsert_prospect(username="fit_coach", niche="personal_trainer", status="qualified", final_ahs=85.0)
-        temp_db.upsert_prospect(username="realtor_mike", niche="realtor", status="qualified", final_ahs=75.0)
-        temp_db.upsert_prospect(username="fit_brand", niche="personal_trainer", status="disposed", final_ahs=0.0)
+        temp_db.upsert_prospect(
+            username="fit_coach", niche="personal_trainer", status="qualified", final_ahs=85.0
+        )
+        temp_db.upsert_prospect(
+            username="realtor_mike", niche="realtor", status="qualified", final_ahs=75.0
+        )
+        temp_db.upsert_prospect(
+            username="fit_brand", niche="personal_trainer", status="disposed", final_ahs=0.0
+        )
 
         all_prospects = temp_db.list_prospects()
         assert len(all_prospects) == 3

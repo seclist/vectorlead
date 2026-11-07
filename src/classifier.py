@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -37,7 +37,7 @@ class NicheVerdict:
     matched_positives: list[str]
     matched_services: list[str]
     matched_negatives: list[str]
-    disqualification_reason: Optional[str] = None
+    disqualification_reason: str | None = None
 
     def summary(self) -> str:
         if self.is_match:
@@ -53,7 +53,7 @@ class NicheClassifier:
 
     DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "niches.yaml"
 
-    def __init__(self, config_path: Optional[Path | str] = None) -> None:
+    def __init__(self, config_path: Path | str | None = None) -> None:
         self.niches: dict[str, NicheDefinition] = {}
         path = Path(config_path) if config_path else self.DEFAULT_CONFIG_PATH
         if path.exists():
@@ -67,7 +67,7 @@ class NicheClassifier:
         if not path_obj.exists():
             raise FileNotFoundError(f"Niche configuration file not found: {path}")
 
-        with open(path_obj, "r", encoding="utf-8") as f:
+        with open(path_obj, encoding="utf-8") as f:
             data: dict[str, Any] = yaml.safe_load(f) or {}
 
         raw_niches = data.get("niches", {})
@@ -77,9 +77,15 @@ class NicheClassifier:
                 id=niche_id,
                 name=cfg.get("name", niche_id),
                 description=cfg.get("description", ""),
-                positive_keywords=[str(k).lower().strip() for k in cfg.get("positive_keywords", [])],
-                service_indicators=[str(k).lower().strip() for k in cfg.get("service_indicators", [])],
-                negative_keywords=[str(k).lower().strip() for k in cfg.get("negative_keywords", [])],
+                positive_keywords=[
+                    str(k).lower().strip() for k in cfg.get("positive_keywords", [])
+                ],
+                service_indicators=[
+                    str(k).lower().strip() for k in cfg.get("service_indicators", [])
+                ],
+                negative_keywords=[
+                    str(k).lower().strip() for k in cfg.get("negative_keywords", [])
+                ],
             )
 
     def _load_fallback_defaults(self) -> None:
@@ -89,16 +95,34 @@ class NicheClassifier:
             name="Personal Trainer & Fitness Coach",
             description="Online fitness and hypertrophy coaches offering 1:1 training.",
             positive_keywords=[
-                "fitness coach", "online coach", "personal trainer",
-                "fat loss", "body transformation", "strength coach", "hypertrophy"
+                "fitness coach",
+                "online coach",
+                "personal trainer",
+                "fat loss",
+                "body transformation",
+                "strength coach",
+                "hypertrophy",
             ],
             service_indicators=[
-                "1-on-1 coaching", "1:1 coaching", "apply below", "link in bio",
-                "dm for coaching", "dm 'ready'", "client results", "custom workout"
+                "1-on-1 coaching",
+                "1:1 coaching",
+                "apply below",
+                "link in bio",
+                "dm for coaching",
+                "dm 'ready'",
+                "client results",
+                "custom workout",
             ],
             negative_keywords=[
-                "gym clothing", "apparel", "activewear", "gymwear",
-                "clothing brand", "supplements store", "shop now", "free shipping", "worldwide shipping"
+                "gym clothing",
+                "apparel",
+                "activewear",
+                "gymwear",
+                "clothing brand",
+                "supplements store",
+                "shop now",
+                "free shipping",
+                "worldwide shipping",
             ],
         )
 
@@ -110,7 +134,7 @@ class NicheClassifier:
         """Return all available niche IDs."""
         return list(self.niches.keys())
 
-    def get_niche(self, niche_id: str) -> Optional[NicheDefinition]:
+    def get_niche(self, niche_id: str) -> NicheDefinition | None:
         """Get the configuration for a specific niche."""
         return self.niches.get(niche_id)
 

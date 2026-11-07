@@ -1,14 +1,14 @@
 """Unit tests for the deduplicating, non-destructive CRM sync engine."""
 
 import csv
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
+
 from src.sheets_sync import (
     DISPOSED_HEADERS,
     TRACKER_HEADERS,
-    BaseCRM,
     LocalSheetsSync,
 )
 
@@ -33,7 +33,7 @@ class TestColumnSchemas:
             "Days Since Outreach",
             "Notes",
         ]
-        with open(temp_crm.tracker_file, "r", newline="", encoding="utf-8") as f:
+        with open(temp_crm.tracker_file, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
             headers = next(reader)
             assert headers == TRACKER_HEADERS
@@ -46,7 +46,7 @@ class TestColumnSchemas:
             "Disposed Date",
             "Notes",
         ]
-        with open(temp_crm.disposed_file, "r", newline="", encoding="utf-8") as f:
+        with open(temp_crm.disposed_file, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
             headers = next(reader)
             assert headers == DISPOSED_HEADERS
@@ -104,7 +104,7 @@ class TestNonDestructiveAppending:
         assert row_idx3 == 4  # Row 4
 
         # Read back all rows
-        with open(temp_crm.tracker_file, "r", newline="", encoding="utf-8") as f:
+        with open(temp_crm.tracker_file, newline="", encoding="utf-8") as f:
             rows = list(csv.reader(f))
 
         assert len(rows) == 4  # 1 header + 3 leads
@@ -117,10 +117,12 @@ class TestNonDestructiveAppending:
         assert rows[3][0] == "lead_3"
 
     def test_disposed_record_formatting(self, temp_crm: LocalSheetsSync) -> None:
-        row_idx = temp_crm.append_to_disposed("gym_apparel_store", 45000, "Matched negative: apparel")
+        row_idx = temp_crm.append_to_disposed(
+            "gym_apparel_store", 45000, "Matched negative: apparel"
+        )
         assert row_idx == 2
 
-        with open(temp_crm.disposed_file, "r", newline="", encoding="utf-8") as f:
+        with open(temp_crm.disposed_file, newline="", encoding="utf-8") as f:
             rows = list(csv.reader(f))
 
         assert len(rows) == 2
@@ -181,11 +183,13 @@ class TestCRMFactory:
 
     def test_factory_returns_local_when_forced(self, tmp_path: Path) -> None:
         from src.sheets_sync import get_crm_backend
+
         crm = get_crm_backend(force_local=True, local_dir=tmp_path / "factory_local")
         assert isinstance(crm, LocalSheetsSync)
 
     def test_factory_fallback_when_creds_missing(self, tmp_path: Path) -> None:
         from src.sheets_sync import get_crm_backend
+
         crm = get_crm_backend(
             force_local=False,
             local_dir=tmp_path / "factory_fallback",
@@ -197,8 +201,11 @@ class TestCRMFactory:
 class TestMockedGoogleSheetsCRM:
     """Test GoogleSheetsCRM logic with mocked gspread objects."""
 
-    def test_google_sheets_crm_operations(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    def test_google_sheets_crm_operations(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
         from unittest.mock import MagicMock
+
         from src.sheets_sync import GoogleSheetsCRM
 
         # Create dummy creds file
@@ -222,7 +229,10 @@ class TestMockedGoogleSheetsCRM:
         mock_gc.open_by_key.return_value = mock_spreadsheet
         mock_gc.open.return_value = mock_spreadsheet
 
-        monkeypatch.setattr("google.oauth2.service_account.Credentials.from_service_account_file", lambda path, scopes: MagicMock())
+        monkeypatch.setattr(
+            "google.oauth2.service_account.Credentials.from_service_account_file",
+            lambda path, scopes: MagicMock(),
+        )
         monkeypatch.setattr("gspread.authorize", lambda creds: mock_gc)
 
         crm = GoogleSheetsCRM(

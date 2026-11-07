@@ -7,10 +7,11 @@ qualification verdicts locally for fast offline queries and syncing.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Generator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Generator, Optional
+from typing import Any
 
 
 class ProspectDatabase:
@@ -18,7 +19,7 @@ class ProspectDatabase:
 
     DEFAULT_DB_PATH = Path("vectorlead.db")
 
-    def __init__(self, db_path: Optional[Path | str] = None) -> None:
+    def __init__(self, db_path: Path | str | None = None) -> None:
         self.db_path = Path(db_path) if db_path else self.DEFAULT_DB_PATH
         self.init_db()
 
@@ -62,7 +63,9 @@ class ProspectDatabase:
                 """
             )
             # Automatic schema migration for existing databases
-            existing_cols = {r["name"] for r in conn.execute("PRAGMA table_info(prospects)").fetchall()}
+            existing_cols = {
+                r["name"] for r in conn.execute("PRAGMA table_info(prospects)").fetchall()
+            }
             for col, col_type in [
                 ("f_ratio", "REAL DEFAULT 1.0"),
                 ("funnel_tier", "TEXT DEFAULT 'high_ticket'"),
@@ -72,12 +75,8 @@ class ProspectDatabase:
                 if col not in existing_cols:
                     conn.execute(f"ALTER TABLE prospects ADD COLUMN {col} {col_type}")
 
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_prospects_status ON prospects(status)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_prospects_niche ON prospects(niche)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_prospects_status ON prospects(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_prospects_niche ON prospects(niche)")
 
     def upsert_prospect(
         self,
@@ -97,12 +96,12 @@ class ProspectDatabase:
         is_breakout: bool = False,
         eqs_score: float = 50.0,
         status: str = "disposed",
-        disposal_reason: Optional[str] = None,
+        disposal_reason: str | None = None,
         crm_synced: bool = False,
     ) -> None:
         """Insert or update a prospect in the local database."""
         clean_user = username.lstrip("@").strip().lower()
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
 
         with self._connection() as conn:
             conn.execute(
@@ -157,13 +156,11 @@ class ProspectDatabase:
                 ),
             )
 
-    def get_prospect(self, username: str) -> Optional[dict[str, Any]]:
+    def get_prospect(self, username: str) -> dict[str, Any] | None:
         """Retrieve prospect details by username."""
         clean_user = username.lstrip("@").strip().lower()
         with self._connection() as conn:
-            cur = conn.execute(
-                "SELECT * FROM prospects WHERE username = ?", (clean_user,)
-            )
+            cur = conn.execute("SELECT * FROM prospects WHERE username = ?", (clean_user,))
             row = cur.fetchone()
             return dict(row) if row else None
 
@@ -171,9 +168,7 @@ class ProspectDatabase:
         """Check if a handle has already been evaluated."""
         clean_user = username.lstrip("@").strip().lower()
         with self._connection() as conn:
-            cur = conn.execute(
-                "SELECT 1 FROM prospects WHERE username = ?", (clean_user,)
-            )
+            cur = conn.execute("SELECT 1 FROM prospects WHERE username = ?", (clean_user,))
             return cur.fetchone() is not None
 
     def mark_crm_synced(self, username: str) -> None:
@@ -182,7 +177,7 @@ class ProspectDatabase:
         with self._connection() as conn:
             conn.execute(
                 "UPDATE prospects SET crm_synced = 1, updated_at = ? WHERE username = ?",
-                (datetime.now(timezone.utc).isoformat(), clean_user),
+                (datetime.now(UTC).isoformat(), clean_user),
             )
 
     def get_stats(self) -> dict[str, int]:
@@ -209,7 +204,7 @@ class ProspectDatabase:
             }
 
     def list_prospects(
-        self, status: Optional[str] = None, niche: Optional[str] = None, limit: int = 50
+        self, status: str | None = None, niche: str | None = None, limit: int = 50
     ) -> list[dict[str, Any]]:
         """List prospects with optional status and niche filters."""
         query = "SELECT * FROM prospects WHERE 1=1"

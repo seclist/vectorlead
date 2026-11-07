@@ -12,8 +12,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 
 def clamp(value: float, min_val: float = 0.0, max_val: float = 100.0) -> float:
@@ -21,23 +20,23 @@ def clamp(value: float, min_val: float = 0.0, max_val: float = 100.0) -> float:
     return max(min_val, min(max_val, float(value)))
 
 
-class FunnelTier(str, Enum):
+class FunnelTier(StrEnum):
     """Categorized funnel maturity based on link destination and DM automation."""
 
     TIER_A_HIGH_TICKET = "high_ticket"  # Calendly, Typeform, Skool, Kajabi, Stan Store, ManyChat
-    TIER_B_MULTI_LINK = "multi_link"    # Linktree, Beacons, Bio.fm
-    TIER_C_AFFILIATE = "affiliate"      # Amazon storefront, LTK, discount codes
-    TIER_D_UNLINKED = "unlinked"        # No link or inactive bio
+    TIER_B_MULTI_LINK = "multi_link"  # Linktree, Beacons, Bio.fm
+    TIER_C_AFFILIATE = "affiliate"  # Amazon storefront, LTK, discount codes
+    TIER_D_UNLINKED = "unlinked"  # No link or inactive bio
 
 
 @dataclass(frozen=True)
 class ComponentScores:
     """Individual clamped component scores (0 to 100) for VectorLead AHS computation."""
 
-    s_g: float    # Follower growth score
-    s_v: float    # Reel view velocity score
-    s_c: float    # Comment velocity score
-    s_p: float    # Post consistency score (exponential decay weighted)
+    s_g: float  # Follower growth score
+    s_v: float  # Reel view velocity score
+    s_c: float  # Comment velocity score
+    s_p: float  # Post consistency score (exponential decay weighted)
     s_eqs: float = 50.0  # Engagement Quality Score (comment depth & authentic interaction)
 
     def as_dict(self) -> dict[str, float]:
@@ -64,19 +63,19 @@ class AccountMetrics:
     days_since_last_post: int = 1
     likes_med_7: float = 250.0
     comments_med_7: float = 15.0
-    creator_reply_rate: float = 0.45             # Proportion of comments creator replies to
+    creator_reply_rate: float = 0.45  # Proportion of comments creator replies to
     funnel_tier: FunnelTier = FunnelTier.TIER_A_HIGH_TICKET
-    has_dm_automation_signal: bool = False       # E.g. "Comment 'READY'" or "DM 'SCALE'"
+    has_dm_automation_signal: bool = False  # E.g. "Comment 'READY'" or "DM 'SCALE'"
 
     @classmethod
     def from_raw_metrics(
         cls,
         followers: int,
         following: int = 500,
-        followers_7d_ago: Optional[int] = None,
+        followers_7d_ago: int | None = None,
         v_med_7: float = 1000.0,
         v_med_30: float = 1000.0,
-        v_med_prior_7: Optional[float] = None,
+        v_med_prior_7: float | None = None,
         c_med_7: float = 25.0,
         c_med_30: float = 25.0,
         likes_med_7: float = 500.0,
@@ -127,15 +126,15 @@ class AHSResult:
     is_breakout: bool = False
     f_ratio: float = 1.0
     funnel_tier: FunnelTier = FunnelTier.TIER_A_HIGH_TICKET
-    disqualification_reason: Optional[str] = None
+    disqualification_reason: str | None = None
     breakdown: dict[str, float] = field(default_factory=dict)
 
     def summary(self) -> str:
-        status = "QUALIFIED" if self.is_qualified else f"DISQUALIFIED ({self.disqualification_reason})"
-        breakout_tag = " [BREAKOUT ACCELERATION 🚀]" if self.is_breakout else ""
-        return (
-            f"AHS: {self.final_ahs:.1f} (Base: {self.base_ahs:.1f} × {self.multiplier:.2f}){breakout_tag} -> {status}"
+        status = (
+            "QUALIFIED" if self.is_qualified else f"DISQUALIFIED ({self.disqualification_reason})"
         )
+        breakout_tag = " [BREAKOUT ACCELERATION 🚀]" if self.is_breakout else ""
+        return f"AHS: {self.final_ahs:.1f} (Base: {self.base_ahs:.1f} × {self.multiplier:.2f}){breakout_tag} -> {status}"
 
 
 @dataclass(frozen=True)
@@ -283,20 +282,9 @@ def calculate_ahs(
 
     # 6. Base AHS
     if use_advanced_weights:
-        base_ahs = (
-            (0.30 * s_g)
-            + (0.20 * s_v)
-            + (0.15 * s_c)
-            + (0.15 * s_p)
-            + (0.20 * s_eqs)
-        )
+        base_ahs = (0.30 * s_g) + (0.20 * s_v) + (0.15 * s_c) + (0.15 * s_p) + (0.20 * s_eqs)
     else:
-        base_ahs = (
-            (0.35 * s_g)
-            + (0.25 * s_v)
-            + (0.20 * s_c)
-            + (0.20 * s_p)
-        )
+        base_ahs = (0.35 * s_g) + (0.25 * s_v) + (0.20 * s_c) + (0.20 * s_p)
 
     # 7. Velocity Acceleration
     accel = metrics.reel_view_velocity_ratio - metrics.prior_reel_view_velocity_ratio
@@ -321,7 +309,7 @@ def calculate_ahs(
 
     # 10. Qualification Gate
     is_qualified = True
-    disqualification_reason: Optional[str] = None
+    disqualification_reason: str | None = None
 
     if multiplier == 0.0:
         is_qualified = False

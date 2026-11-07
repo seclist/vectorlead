@@ -8,10 +8,8 @@ qualified leads non-destructively to Google Sheets.
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Ensure standard output and error support UTF-8 on Windows
 if sys.platform == "win32":
@@ -38,7 +36,7 @@ from src.scraper import (
     classify_funnel_tier,
     get_curated_seed_prospects,
 )
-from src.sheets_sync import BaseCRM, get_crm_backend
+from src.sheets_sync import get_crm_backend
 
 app = typer.Typer(
     name="vectorlead",
@@ -48,7 +46,7 @@ app = typer.Typer(
 console = Console()
 
 BANNER = """[bold cyan]
- __     __        _             _                     _ 
+ __     __        _             _                     _
  \\ \\   / /__  ___| |_ ___  _ __| |    ___  __ _  __| |
   \\ \\ / / _ \\/ __| __/ _ \\| '__| |   / _ \\/ _` |/ _` |
    \\ V /  __/ (__| || (_) | |  | |__|  __/ (_| | (_| |
@@ -83,7 +81,7 @@ def hunt(
         "--min-ahs",
         help="Minimum Account Health Score required to qualify.",
     ),
-    seeds: Optional[str] = typer.Option(
+    seeds: str | None = typer.Option(
         None,
         "--seeds",
         "-s",
@@ -116,7 +114,11 @@ def hunt(
     crm = get_crm_backend(force_local=local_crm)
     crawler = InstagramCrawler()
 
-    backend_name = "Local CSV CRM (crm_data/)" if isinstance(crm, type(get_crm_backend(force_local=True))) else "Google Sheets CRM"
+    backend_name = (
+        "Local CSV CRM (crm_data/)"
+        if isinstance(crm, type(get_crm_backend(force_local=True)))
+        else "Google Sheets CRM"
+    )
     console.print(
         Panel.fit(
             f"[bold green]Target Niche:[/bold green] {niche} ([dim]{classifier.get_niche(niche).name if classifier.get_niche(niche) else ''}[/dim])\n"
@@ -135,7 +137,7 @@ def hunt(
     if seeds:
         seed_path = Path(seeds)
         if seed_path.is_file():
-            with open(seed_path, "r", encoding="utf-8") as f:
+            with open(seed_path, encoding="utf-8") as f:
                 handles = [line.strip().lstrip("@") for line in f if line.strip()]
             candidate_list = [{"username": h, "live_crawl": True} for h in handles]
         else:
@@ -182,7 +184,7 @@ def hunt(
 
         total_evaluated += 1
 
-        profile: Optional[InstagramProfile] = None
+        profile: InstagramProfile | None = None
         if cand.get("live_crawl", False):
             profile = crawler.fetch_profile(clean_user)
         else:
@@ -290,7 +292,9 @@ def hunt(
                 f"{profile.followers:,}",
                 f"{profile.followers / max(profile.following, 1):.1f}x",
                 "[dim]Tier D[/dim]",
-                f"[red]{verdict.disqualification_reason[:20]}...[/red]" if verdict.disqualification_reason and len(verdict.disqualification_reason) > 20 else "[red]Mismatch[/red]",
+                f"[red]{verdict.disqualification_reason[:20]}...[/red]"
+                if verdict.disqualification_reason and len(verdict.disqualification_reason) > 20
+                else "[red]Mismatch[/red]",
                 "-",
                 "-",
                 "-",
@@ -317,8 +321,14 @@ def hunt(
         )
 
         f_ratio_str = f"{ahs_res.f_ratio:.1f}x"
-        tier_label = "[green]Tier A (High-Ticket)[/green]" if tier == FunnelTier.TIER_A_HIGH_TICKET else (
-            "[cyan]Tier B (Multi-Link)[/cyan]" if tier == FunnelTier.TIER_B_MULTI_LINK else "[yellow]Tier C/D[/yellow]"
+        tier_label = (
+            "[green]Tier A (High-Ticket)[/green]"
+            if tier == FunnelTier.TIER_A_HIGH_TICKET
+            else (
+                "[cyan]Tier B (Multi-Link)[/cyan]"
+                if tier == FunnelTier.TIER_B_MULTI_LINK
+                else "[yellow]Tier C/D[/yellow]"
+            )
         )
 
         if ahs_res.is_qualified:
@@ -433,15 +443,21 @@ def test_account(
     classifier = NicheClassifier()
     clean_user = crawler.clean_handle(username)
 
-    console.print(f"[bold cyan]Diagnosing profile:[/bold cyan] @{clean_user} against [bold yellow]{niche}[/bold yellow]...")
+    console.print(
+        f"[bold cyan]Diagnosing profile:[/bold cyan] @{clean_user} against [bold yellow]{niche}[/bold yellow]..."
+    )
 
-    profile: Optional[InstagramProfile] = None
+    profile: InstagramProfile | None = None
     if live:
         profile = crawler.fetch_profile(clean_user)
 
     if profile is None:
-        console.print(f"[bold red]Live Crawl Result:[/bold red] Could not fetch @{clean_user} or account does not exist (404/Private/Blocked).")
-        console.print("[dim]Generating diagnostic sample based on handle for demonstration...[/dim]")
+        console.print(
+            f"[bold red]Live Crawl Result:[/bold red] Could not fetch @{clean_user} or account does not exist (404/Private/Blocked)."
+        )
+        console.print(
+            "[dim]Generating diagnostic sample based on handle for demonstration...[/dim]"
+        )
         profile = InstagramProfile(
             username=clean_user,
             exists=True,
@@ -487,16 +503,50 @@ def test_account(
     scorecard.add_column("Value")
     scorecard.add_column("Score / Ratio", justify="right")
 
-    scorecard.add_row("Follower Growth (7d, S_G)", f"{metrics.growth_rate_7d:+.1%}", f"{ahs.components.s_g:.1f}")
-    scorecard.add_row("Reel View Velocity (Rv, S_V)", f"{metrics.reel_view_velocity_ratio:.2f}x", f"{ahs.components.s_v:.1f}")
-    scorecard.add_row("Comment Velocity (Rc, S_C)", f"{metrics.comment_velocity_ratio:.2f}x", f"{ahs.components.s_c:.1f}")
-    scorecard.add_row("Post Recency Decay (S_P)", f"{metrics.posts_last_30_days} posts (eff: {ahs.breakdown.get('p_eff', 0):.1f})", f"{ahs.components.s_p:.1f}")
-    scorecard.add_row("Engagement Quality (EQS, S_EQS)", f"C/L: {metrics.comments_med_7/max(metrics.likes_med_7, 1):.1%}, Reply: {metrics.creator_reply_rate:.0%}", f"{ahs.components.s_eqs:.1f}")
-    scorecard.add_row("Follower Churn Ratio (F_ratio)", f"{metrics.followers:,} / {metrics.following:,}", f"{ahs.f_ratio:.1f}x")
-    scorecard.add_row("Funnel Maturity Tier", f"{tier.value.upper()}", f"{'DM Trigger Active' if has_dm else 'Direct Link'}")
+    scorecard.add_row(
+        "Follower Growth (7d, S_G)", f"{metrics.growth_rate_7d:+.1%}", f"{ahs.components.s_g:.1f}"
+    )
+    scorecard.add_row(
+        "Reel View Velocity (Rv, S_V)",
+        f"{metrics.reel_view_velocity_ratio:.2f}x",
+        f"{ahs.components.s_v:.1f}",
+    )
+    scorecard.add_row(
+        "Comment Velocity (Rc, S_C)",
+        f"{metrics.comment_velocity_ratio:.2f}x",
+        f"{ahs.components.s_c:.1f}",
+    )
+    scorecard.add_row(
+        "Post Recency Decay (S_P)",
+        f"{metrics.posts_last_30_days} posts (eff: {ahs.breakdown.get('p_eff', 0):.1f})",
+        f"{ahs.components.s_p:.1f}",
+    )
+    scorecard.add_row(
+        "Engagement Quality (EQS, S_EQS)",
+        f"C/L: {metrics.comments_med_7 / max(metrics.likes_med_7, 1):.1%}, Reply: {metrics.creator_reply_rate:.0%}",
+        f"{ahs.components.s_eqs:.1f}",
+    )
+    scorecard.add_row(
+        "Follower Churn Ratio (F_ratio)",
+        f"{metrics.followers:,} / {metrics.following:,}",
+        f"{ahs.f_ratio:.1f}x",
+    )
+    scorecard.add_row(
+        "Funnel Maturity Tier",
+        f"{tier.value.upper()}",
+        f"{'DM Trigger Active' if has_dm else 'Direct Link'}",
+    )
     scorecard.add_row("Base Health Score", "-", f"[bold]{ahs.base_ahs:.1f}[/bold]")
-    scorecard.add_row("Composite Multiplier (M)", f"{ahs.multiplier:.2f}x ({ahs.multiplier_reason})", f"{'Breakout 🚀' if ahs.is_breakout else 'Steady'}")
-    scorecard.add_row("FINAL VECTORLEAD AHS", f"{ahs.final_ahs:.1f}", f"[bold {'green' if ahs.is_qualified else 'red'}]{ahs.final_ahs:.1f}[/bold {'green' if ahs.is_qualified else 'red'}]")
+    scorecard.add_row(
+        "Composite Multiplier (M)",
+        f"{ahs.multiplier:.2f}x ({ahs.multiplier_reason})",
+        f"{'Breakout 🚀' if ahs.is_breakout else 'Steady'}",
+    )
+    scorecard.add_row(
+        "FINAL VECTORLEAD AHS",
+        f"{ahs.final_ahs:.1f}",
+        f"[bold {'green' if ahs.is_qualified else 'red'}]{ahs.final_ahs:.1f}[/bold {'green' if ahs.is_qualified else 'red'}]",
+    )
 
     console.print(
         Panel(
