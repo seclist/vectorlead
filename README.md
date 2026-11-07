@@ -6,7 +6,7 @@
 
 ### Autonomous Instagram Lead Discovery, Momentum Scoring, and CRM Sync Engine
 
-[![CI](https://github.com/your-org/vectorlead/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/vectorlead/actions/workflows/ci.yml)
+[![CI](https://github.com/seclist/vectorlead/actions/workflows/ci.yml/badge.svg)](https://github.com/seclist/vectorlead/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-informational.svg)](http://mypy-lang.org/)
@@ -129,7 +129,7 @@ $$\text{Qualified} \iff (\text{Final AHS} \ge 60.0) \land (M > 0.0)$$
 
 ### Step 1: Clone & Install
 ```bash
-git clone https://github.com/your-org/vectorlead.git
+git clone https://github.com/seclist/vectorlead.git
 cd vectorlead
 
 # Install in editable mode (Python 3.11+)
