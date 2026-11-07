@@ -134,11 +134,23 @@ def generate_banner():
     # 4. Typography
     tx = 360 * scale
 
-    # Load system fonts
-    font_title = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 64 * scale)
-    font_sub = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 23 * scale)
-    font_tag = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 13 * scale)
-    font_pill = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 13 * scale)
+    # Load fonts with cross-platform fallback
+    try:
+        font_title = ImageFont.truetype("arialbd.ttf", 64 * scale)
+        font_sub = ImageFont.truetype("arial.ttf", 23 * scale)
+        font_tag = ImageFont.truetype("arialbd.ttf", 13 * scale)
+        font_pill = ImageFont.truetype("arialbd.ttf", 13 * scale)
+    except Exception:
+        try:
+            font_title = ImageFont.truetype("DejaVuSans-Bold.ttf", 64 * scale)
+            font_sub = ImageFont.truetype("DejaVuSans.ttf", 23 * scale)
+            font_tag = ImageFont.truetype("DejaVuSans-Bold.ttf", 13 * scale)
+            font_pill = ImageFont.truetype("DejaVuSans-Bold.ttf", 13 * scale)
+        except Exception:
+            font_title = ImageFont.load_default()
+            font_sub = font_title
+            font_tag = font_title
+            font_pill = font_title
 
     # Minimal Tag Badge
     tag_text = "AUTONOMOUS INSTAGRAM LEAD DISCOVERY"
