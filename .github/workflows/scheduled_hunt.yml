@@ -73,7 +73,7 @@ jobs:
           python main.py hunt --niche "$NICHE" --min-new-leads "$MIN_LEADS" --max-followers "$MAX_FOLLOWERS"
 
       - name: Archive Local CRM Leads (Artifact Download)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: vectorlead-crm-output-${{ github.run_id }}
